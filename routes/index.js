@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user').User;
 
+
 router.get('/',function(req,res,next){
 	return res.render('index',{title: 'Home'});
 });
@@ -34,11 +35,12 @@ router.route('/register')
 					password: req.body.password
 				};
 
-				User.create(UserData,function(err){
+				User.create(UserData,function(err,user){
 					if(err){
 						return next(err);
 					}
-					return res.render('profile',{title:'Profile'});
+					req.session.userId = user._id;
+					return res.redirect('/profile');
 				});
 				
 			}else{
@@ -49,7 +51,19 @@ router.route('/register')
 	   });
 
 router.get('/profile',function(req,res,next){
-	return res.render('profile',{title: 'Profile', favorite:""});
+	if(!req.session.userId){
+		var err = new Error("You are not authorized to view this page");
+		err.status = 403;
+		return next(err);
+	}
+	User.findById(req.session.userId)
+		.exec(function(err,user){
+			if(err){
+				return next(err);
+			}else{
+				return res.render('profile',{title: 'Profile', name: user.name, favorite:user.favoriteBook});
+			}
+		})
 });
 
 router.route('/login')
@@ -64,6 +78,7 @@ router.route('/login')
 	  				err.status = 401;
 	  				return next(err);
 	  			}else{
+	  				req.session.userId = user._id;
 	  				return res.redirect('/profile');
 	  			}
 	  		});

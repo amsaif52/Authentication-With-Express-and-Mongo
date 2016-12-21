@@ -1,7 +1,8 @@
 var express = require('express'),
 	bodyParser = require('body-parser'),
 	mongoose = require('mongoose'),
-	favicon = require('serve-favicon');
+	favicon = require('serve-favicon'),
+	session = require('express-session');
 
 mongoose.connect("mongodb://localhost:27017/bookworm");
 var db = mongoose.connection;
@@ -13,6 +14,11 @@ var port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(session({
+	secret: "Authentication with Express and Mongo",
+	resave: true,
+	saveUninitialized: false
+}));
 
 app.set('view engine','pug');
 app.set('views', __dirname+'/views');
