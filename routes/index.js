@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var User = require('../models/user').User;
 
 router.get('/',function(req,res,next){
 	return res.render('index',{title: 'Home'});
@@ -18,7 +19,59 @@ router.route('/register')
 			return res.render('register',{title: 'Register'});
 	   })
 	  .post(function(req,res,next){
-			
+			if(req.body.email && req.body.name && req.body.email && req.body.favoriteBook && req.body.password ){
+
+				if(req.body.password !== req.body.confirmPassword){
+					var err = new Error("Passoword Doesn't Match");
+					err.status = 400;
+					return next(err);
+				}
+
+				var UserData = {
+					name: req.body.name,
+					email: req.body.email,
+					favoriteBook: req.body.favoriteBook,
+					password: req.body.password
+				};
+
+				User.create(UserData,function(err){
+					if(err){
+						return next(err);
+					}
+					return res.render('profile',{title:'Profile'});
+				});
+				
+			}else{
+				var err = new Error("All Fields Required!");
+				err.status = 400;
+				return next(err);
+			}
 	   });
+
+router.get('/profile',function(req,res,next){
+	return res.render('profile',{title: 'Profile', favorite:""});
+});
+
+router.route('/login')
+	  .get(function(req,res,next){
+		return res.render('login',{title: 'Login'});
+	  })
+	  .post(function(req,res,next){
+	  	if(req.body.email && req.body.password){
+	  		User.authenticate(req.body.email,req.body.password,function(err,user){
+	  			if(err || !user){
+	  				var err = new Error("Wrong Email or Password");
+	  				err.status = 401;
+	  				return next(err);
+	  			}else{
+	  				return res.redirect('/profile');
+	  			}
+	  		});
+	  	}else{
+	  		var err = new Error('Email or Password does not Match');
+	  		err.status = 401;
+	  		return next(err);
+	  	}
+	  });
 
 module.exports = router;

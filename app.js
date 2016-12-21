@@ -20,7 +20,6 @@ app.set('views', __dirname+'/views');
 app.use('/static', express.static(__dirname + '/public'));
 app.use(favicon(__dirname + '/public/favicon.ico'));
 
-
 var routes = require('./routes/index');
 app.use('/',routes);
 
@@ -32,7 +31,7 @@ app.use(function(req,res,next){
 
 app.use(function(err,req,res,next){
 	res.status(err.status || 500);
-	res.json({error: {message: err.message}});
+	res.render('error',{message: err.message, error:{}, title: 'Error'});
 	next();
 });
 
