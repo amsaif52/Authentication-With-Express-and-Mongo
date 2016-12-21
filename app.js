@@ -2,7 +2,8 @@ var express = require('express'),
 	bodyParser = require('body-parser'),
 	mongoose = require('mongoose'),
 	favicon = require('serve-favicon'),
-	session = require('express-session');
+	session = require('express-session'),
+	mongoStore = require('connect-mongo')(session);
 
 mongoose.connect("mongodb://localhost:27017/bookworm");
 var db = mongoose.connection;
@@ -17,7 +18,10 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({
 	secret: "Authentication with Express and Mongo",
 	resave: true,
-	saveUninitialized: false
+	saveUninitialized: false,
+	store: new mongoStore({
+		mongooseConnection: db
+	})
 }));
 
 app.set('view engine','pug');
@@ -25,6 +29,11 @@ app.set('views', __dirname+'/views');
 
 app.use('/static', express.static(__dirname + '/public'));
 app.use(favicon(__dirname + '/public/favicon.ico'));
+
+app.use(function(req,res,next){
+	res.locals.currentUser = req.session.userId;
+	next();
+})
 
 var routes = require('./routes/index');
 app.use('/',routes);

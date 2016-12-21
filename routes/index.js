@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user').User;
+var mid = require('../middleware/middleware');
 
 
 router.get('/',function(req,res,next){
@@ -16,7 +17,7 @@ router.get('/contact', function(req, res, next) {
 });
 
 router.route('/register')
-	  .get(function(req,res,next){
+	  .get(mid.loggedOut,function(req,res,next){
 			return res.render('register',{title: 'Register'});
 	   })
 	  .post(function(req,res,next){
@@ -67,7 +68,7 @@ router.get('/profile',function(req,res,next){
 });
 
 router.route('/login')
-	  .get(function(req,res,next){
+	  .get(mid.loggedOut,function(req,res,next){
 		return res.render('login',{title: 'Login'});
 	  })
 	  .post(function(req,res,next){
@@ -88,5 +89,17 @@ router.route('/login')
 	  		return next(err);
 	  	}
 	  });
+
+router.get('/logout',function(req,res,next){
+	if(req.session){
+		req.session.destroy(function(err){
+			if(err){
+				return next(err);
+			}else{
+				return res.redirect('/');
+			}
+		})
+	}
+});
 
 module.exports = router;
